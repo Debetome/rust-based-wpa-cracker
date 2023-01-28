@@ -35,13 +35,11 @@ impl TryFrom<Vec<String>> for Config {
             }
         };
 
-        let charset = args
-            .iter()
+        let charset = args.iter()
             .filter_map(|arg| CharSet::from_str(arg.as_str()).ok())
             .collect::<Vec<CharSet>>();
 
-        let mut str_args = args
-            .windows(2)
+        let mut str_args = args.windows(2)
             .filter_map(|args| {
                 match args[0].as_str() {
                     "--ssid" => Some((args[0].to_owned(), args[1].to_owned())),
@@ -52,8 +50,7 @@ impl TryFrom<Vec<String>> for Config {
             })
             .collect::<HashMap<String, String>>();
 
-        let mut digit_args = args
-            .windows(2)
+        let mut digit_args = args.windows(2)
             .filter_map(|args| {
                 match args[0].as_str() {
                     "--max" => parse_digit_arg(&args[0], &args[1]),
