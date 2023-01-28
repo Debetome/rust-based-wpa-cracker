@@ -3,7 +3,6 @@ use std::fmt;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ConfigErrorType {
-    InvalidArgument,
     InvalidValue,
     IncorrectValue,
     MissingArgument
@@ -12,7 +11,6 @@ pub enum ConfigErrorType {
 impl fmt::Display for ConfigErrorType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidArgument => write!(f, "Invalid Argument"),
             Self::InvalidValue => write!(f, "Invalid Value"),
             Self::IncorrectValue => write!(f, "Incorrect Value"),
             Self::MissingArgument => write!(f, "Missing Argument")
