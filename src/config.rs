@@ -21,6 +21,20 @@ impl TryFrom<Vec<String>> for Config {
         let args = &args[1..];
         let mut errors: Vec<ConfigError> = Vec::new();
         
+        let mut parse_digit_arg = |key: &str, value: &str| {
+            match value.to_string().parse::<usize>() {
+                Ok(num) => Some((key.to_owned(), num)),
+                Err(_) => {
+                    errors.push(ConfigError {
+                        desc: "Arguments '--min' and '--max' can only receive numeric values",
+                        code: ConfigErrorType::InvalidValue,
+                        detail: Some(format!("Value '{}' NOT valid for argument '{}'", value, key))
+                    });
+                    None
+                }
+            }
+        };
+
         let charset = args
             .iter()
             .filter_map(|arg| CharSet::from_str(arg.as_str()).ok())
@@ -41,27 +55,13 @@ impl TryFrom<Vec<String>> for Config {
         let mut digit_args = args
             .windows(2)
             .filter_map(|args| {
-                let mut parse_arg = |key: &str, value: &str| {
-                    match value.to_string().parse::<usize>() {
-                        Ok(num) => Some((key.to_owned(), num)),
-                        Err(_) => {
-                            errors.push(ConfigError {
-                                desc: "Arguments '--min' and '--max' can only receive numeric values",
-                                code: ConfigErrorType::InvalidValue,
-                                detail: Some(format!("Value '{}' NOT valid for argument '{}'", value, key))
-                            });
-                            None
-                        }
-                    }
-                };
                 match args[0].as_str() {
-                    "--max" => parse_arg(&args[0], &args[1]),
-                    "--min" => parse_arg(&args[0], &args[1]),
+                    "--max" => parse_digit_arg(&args[0], &args[1]),
+                    "--min" => parse_digit_arg(&args[0], &args[1]),
                     _ => None
                 }
             })
             .collect::<HashMap<String, usize>>();
-
 
         if str_args.is_empty() || str_args.len() < 3 {
             for arg in ["--ssid", "--eapol1", "--eapol2"] {
