@@ -2,6 +2,7 @@ use std::env;
 
 mod cracker;
 mod config;
+mod errors;
 
 use config::*;
 
