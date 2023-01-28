@@ -33,15 +33,7 @@ impl TryFrom<Vec<String>> for Config {
                     "--ssid" => Some((args[0].to_owned(), args[1].to_owned())),
                     "--eapol1" => Some((args[0].to_owned(), args[1].to_owned())),
                     "--eapol2" => Some((args[0].to_owned(), args[1].to_owned())),
-                    "--min" | "--max" => None,
-                    _ => {
-                        errors.push(ConfigError {
-                            desc: "Unable to parse argument",
-                            code: ConfigErrorType::InvalidArgument,
-                            detail: Some(format!("Unrecognized argument '{}'", &args[0]))
-                        });
-                        None
-                    }
+                    _ => None
                 }
             })
             .collect::<HashMap<String, String>>();
@@ -65,15 +57,7 @@ impl TryFrom<Vec<String>> for Config {
                 match args[0].as_str() {
                     "--max" => parse_arg(&args[0], &args[1]),
                     "--min" => parse_arg(&args[0], &args[1]),
-                    "--ssid" | "--eapol1" | "--eapol2" => None,
-                    _ => {
-                        errors.push(ConfigError {
-                            desc: "Unable to parse argument",
-                            code: ConfigErrorType::InvalidArgument,
-                            detail: Some(format!("Unrecognized argument '{}'", &args[0]))
-                        });
-                        None
-                    }
+                    _ => None
                 }
             })
             .collect::<HashMap<String, usize>>();
