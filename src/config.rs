@@ -85,7 +85,7 @@ impl TryFrom<Vec<String>> for Config {
                 errors.push(ConfigError {
                     desc: "Undefined arguments",
                     code: ConfigErrorType::MissingArgument,
-                    detail: Some(format!("Argument '{}' not included", &args[0]))
+                    detail: Some(format!("Argument '{}' not included", arg))
                 });
             }
         }
@@ -96,7 +96,7 @@ impl TryFrom<Vec<String>> for Config {
                 errors.push(ConfigError {
                     desc: "Undefined arguments",
                     code: ConfigErrorType::MissingArgument,
-                    detail: Some(format!("Argument '{}' not included", &args[0]))
+                    detail: Some(format!("Argument '{}' not included", arg))
                 });
             }
         }
@@ -112,7 +112,7 @@ impl TryFrom<Vec<String>> for Config {
         if charset.is_empty() { 
             errors.push(ConfigError {
                 desc: "No charsets specified ...",
-                code: ConfigErrorType::InvalidArgument,
+                code: ConfigErrorType::MissingArgument,
                 detail: None
             });
         }
