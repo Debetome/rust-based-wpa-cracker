@@ -3,26 +3,6 @@ use std::collections::HashMap;
 use itertools::structs::{Permutations, Unique};
 
 #[derive(Debug)]
-pub enum CharSet {
-    LowerCase(String),
-    UpperCase(String),
-    Digits(String)
-}
-
-impl FromStr for CharSet {
-    type Err = String;
-
-    fn from_str(arg: &str) -> Result<Self, Self::Err> {
-        match arg {
-            "--lowercase" => Ok(CharSet::LowerCase(String::from("abcdefghijklmnopqrstuvwxyz"))),
-            "--uppercase" => Ok(CharSet::UpperCase(String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))),
-            "--digits" => Ok(CharSet::Digits(String::from("1234567890"))),
-            _ => Err(String::from("Invalid charset argument"))
-        }
-    }
-}
-
-#[derive(Debug)]
 pub struct Config {
     pub ssid: String,
     pub charset: Vec<CharSet>,
@@ -106,5 +86,25 @@ impl TryFrom<Vec<String>> for Config {
         let iterator = None;
 
         Ok(Self { ssid, charset, max, min, iterator, eapols: vec![eapol1, eapol2] })
+    }
+}
+
+#[derive(Debug)]
+pub enum CharSet {
+    LowerCase(String),
+    UpperCase(String),
+    Digits(String)
+}
+
+impl FromStr for CharSet {
+    type Err = String;
+
+    fn from_str(arg: &str) -> Result<Self, Self::Err> {
+        match arg {
+            "--lowercase" => Ok(CharSet::LowerCase(String::from("abcdefghijklmnopqrstuvwxyz"))),
+            "--uppercase" => Ok(CharSet::UpperCase(String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))),
+            "--digits" => Ok(CharSet::Digits(String::from("1234567890"))),
+            _ => Err(String::from("Invalid charset argument"))
+        }
     }
 }
