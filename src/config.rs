@@ -2,6 +2,8 @@ use std::str::{FromStr, Chars};
 use std::collections::HashMap;
 use itertools::structs::{Permutations, Unique};
 
+use crate::errors::{ConfigError, ConfigErrorType};
+
 #[derive(Debug)]
 pub struct Config {
     pub ssid: String,
@@ -13,11 +15,11 @@ pub struct Config {
 }
 
 impl TryFrom<Vec<String>> for Config {
-    type Error = Box<Vec<String>>;
+    type Error = Box<Vec<ConfigError>>;
 
     fn try_from(args: Vec<String>) -> Result<Self, Self::Error> {
         let args = &args[1..];
-        let mut errors: Vec<String> = Vec::new();
+        let mut errors: Vec<ConfigError> = Vec::new();
         
         let charset = args
             .iter()
@@ -31,7 +33,15 @@ impl TryFrom<Vec<String>> for Config {
                     "--ssid" => Some((args[0].to_owned(), args[1].to_owned())),
                     "--eapol1" => Some((args[0].to_owned(), args[1].to_owned())),
                     "--eapol2" => Some((args[0].to_owned(), args[1].to_owned())),
-                    _ => None
+                    "--min" | "--max" => None,
+                    _ => {
+                        errors.push(ConfigError {
+                            desc: "Unable to parse argument",
+                            code: ConfigErrorType::InvalidArgument,
+                            detail: Some(format!("Unrecognized argument '{}'", &args[0]))
+                        });
+                        None
+                    }
                 }
             })
             .collect::<HashMap<String, String>>();
@@ -41,9 +51,13 @@ impl TryFrom<Vec<String>> for Config {
             .filter_map(|args| {
                 let mut parse_arg = |key: &str, value: &str| {
                     match value.to_string().parse::<usize>() {
-                        Ok(value) => Some((key.to_owned(), value)),
+                        Ok(num) => Some((key.to_owned(), num)),
                         Err(_) => {
-                            errors.push(format!("Invalid value for argument '{}'", key));
+                            errors.push(ConfigError {
+                                desc: "Arguments '--min' and '--max' can only receive numeric values",
+                                code: ConfigErrorType::InvalidValue,
+                                detail: Some(format!("Value '{}' NOT valid for argument '{}'", value, key))
+                            });
                             None
                         }
                     }
@@ -51,7 +65,15 @@ impl TryFrom<Vec<String>> for Config {
                 match args[0].as_str() {
                     "--max" => parse_arg(&args[0], &args[1]),
                     "--min" => parse_arg(&args[0], &args[1]),
-                    _ => None
+                    "--ssid" | "--eapol1" | "--eapol2" => None,
+                    _ => {
+                        errors.push(ConfigError {
+                            desc: "Unable to parse argument",
+                            code: ConfigErrorType::InvalidArgument,
+                            detail: Some(format!("Unrecognized argument '{}'", &args[0]))
+                        });
+                        None
+                    }
                 }
             })
             .collect::<HashMap<String, usize>>();
@@ -60,22 +82,41 @@ impl TryFrom<Vec<String>> for Config {
         if str_args.is_empty() || str_args.len() < 3 {
             for arg in ["--ssid", "--eapol1", "--eapol2"] {
                 if str_args.get(arg).is_some() { continue; }
-                errors.push(format!("Missing argument '{}'", arg));
+                errors.push(ConfigError {
+                    desc: "Undefined arguments",
+                    code: ConfigErrorType::MissingArgument,
+                    detail: Some(format!("Argument '{}' not included", &args[0]))
+                });
             }
         }
 
         if digit_args.is_empty() || digit_args.len() < 2 {
             for arg in ["--min", "--max"] {
                 if digit_args.get(arg).is_some() { continue; }
-                errors.push(format!("Missing argument '{}'", arg));
+                errors.push(ConfigError {
+                    desc: "Undefined arguments",
+                    code: ConfigErrorType::MissingArgument,
+                    detail: Some(format!("Argument '{}' not included", &args[0]))
+                });
             }
         }
 
         if digit_args.len() == 2 && digit_args.get("--min").unwrap() > digit_args.get("--max").unwrap() { 
-            errors.push(String::from("'--min' value can't be greater than '--max'"));
+            errors.push(ConfigError {
+                desc: "'--min' value can't be greater than '--max'",
+                code: ConfigErrorType::IncorrectValue,
+                detail: None
+            });
         }
 
-        if charset.is_empty() { errors.push(String::from("No charsets specified ...")); }
+        if charset.is_empty() { 
+            errors.push(ConfigError {
+                desc: "No charsets specified ...",
+                code: ConfigErrorType::InvalidArgument,
+                detail: None
+            });
+        }
+
         if !errors.is_empty() { return Err(Box::new(errors)); }
 
         let ssid = str_args.remove("--ssid").unwrap();
