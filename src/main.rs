@@ -10,43 +10,30 @@ mod errors;
 use cracker::*;
 use config::*;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = env::args().collect::<Vec<String>>();
-    let (tx, mut rx) = mpsc::channel::<Config>(200);
 
-    let config_handle = tokio::spawn_blocking(move || {
-        let config = match Config::try_from(&args) {
-            Ok(config) => config,
-            Err(errors) => {
-                errors.into_iter().for_each(|err| {
-                    println!("[-] Error: {}", err);
-                });
-                process::exit(0);
-            },
-        };
-        tx.send(config);
-    }
+    let config = match Config::try_from(&args) {
+        Ok(config) => config,
+        Err(errors) => {
+            errors.into_iter().for_each(|err| {
+                println!("[-] Error: {}", err);
+            });
+            process::exit(0);
+        },
+    };
 
-    let cracker_handle = tokio::spawn(async move {
-        loop {
-            if let Ok(config) = rx.try_recv() {
-                let mut cracker = match WpaCracker::new(config) {
-                    Ok(cracker) => cracker,
-                    Err(error) => {
-                        println!("Error: {}", error);
-                        process::exit(0);
-                    }
-                };
-                cracker.run();
-            }
+    let mut cracker = match WpaCracker::new(config) {
+        Ok(cracker) => cracker,
+        Err(error) => {
+            println!("Error: {}", error);
+            process::exit(0);
         }
-    }
-
-    config_handle.await.unwrap();
-    cracker_handle.await.unwrap();
+    };
 
     cracker.run();
+
+    Ok(())
 }
 
 #[cfg(test)]
