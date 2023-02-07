@@ -4,9 +4,12 @@ use sha1::Sha1;
 
 use std::collections::HashMap;
 use std::io::{BufReader, Read};
+use std::str::Chars;
 use std::fs::File;
 
+use itertools::structs::{Permutations, Unique};
 use itertools::Itertools;
+
 use crate::config::*;
 
 type HmacSha1 = Hmac<Sha1>;
@@ -15,7 +18,7 @@ pub struct WpaCracker {
     config: Config,
     message: Message,
     frame802: Vec<u8>,
-    mic: Vec<u8>
+    mic: Vec<u8>,
 }
 
 impl WpaCracker {
@@ -23,7 +26,7 @@ impl WpaCracker {
         let mut eapols = HashMap::<String, Vec<u8>>::new();
         for i in 0..config.eapols.len() {
             match Self::read_bytes(config.eapols[i].as_str()) {
-                Ok(bytes) => eapols.insert(format!("eapol{i}"), bytes).unwrap(),
+                Ok(bytes) => eapols.insert(format!("eapol{}", i+1), bytes),
                 Err(err) => return Err(err)
             };
         }
@@ -43,7 +46,7 @@ impl WpaCracker {
         let mut bytes_content = Vec::new();
         let file = File::open(filename);
         if let Err(_) = file {
-            return Err(String::from("Could not open '{}'"));
+            return Err(format!("Could not open '{}'", filename));
         }
 
         let mut reader = BufReader::new(file.unwrap());
@@ -59,7 +62,19 @@ impl WpaCracker {
         ]
         .concat();
 
-        while let Some(passphrase) = self.config.iterator.as_mut().unwrap().next() {
+        let charset = self.config.charset.iter()
+            .map(|arg| match arg {
+                CharSet::LowerCase(charset) => charset.to_owned(),
+                CharSet::UpperCase(charset) => charset.to_owned(),
+                CharSet::Digits(digits) => digits.to_owned()
+            })
+            .collect::<Vec<String>>()
+            .concat();
+
+        let iterator = charset.chars().permutations(self.config.max).unique();
+
+        for passphrase in iterator {
+            println!("[*] Trying passphrase: {:?}", passphrase.iter().join(""));
             let mut pmk = [0u8, 32];
             pbkdf2::derive(
                 pbkdf2::PBKDF2_HMAC_SHA1, 
