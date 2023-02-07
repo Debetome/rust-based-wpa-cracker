@@ -9,6 +9,7 @@ edition = "2021"
 opt-level = 3
 
 [dependencies]
+tokio = { version = "1.22", features=["full"] }
 hmac = "0.12.1"
 itertools = "0.10.5"
 ring = "0.16.20"
