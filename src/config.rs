@@ -1,6 +1,5 @@
-use std::str::{FromStr, Chars};
+use std::str::FromStr;
 use std::collections::HashMap;
-use itertools::structs::{Permutations, Unique};
 
 use crate::errors::{ConfigError, ConfigErrorType};
 
@@ -10,14 +9,13 @@ pub struct Config {
     pub charset: Vec<CharSet>,
     pub max: usize,
     pub min: usize,
-    pub iterator: Option<Unique<Permutations<Chars<'static>>>>,
     pub eapols: Vec<String>
 }
 
-impl TryFrom<Vec<String>> for Config {
+impl TryFrom<&Vec<String>> for Config {
     type Error = Box<Vec<ConfigError>>;
 
-    fn try_from(args: Vec<String>) -> Result<Self, Self::Error> {
+    fn try_from(args: &Vec<String>) -> Result<Self, Self::Error> {
         let args = &args[1..];
         let mut errors: Vec<ConfigError> = Vec::new();
         
@@ -105,9 +103,8 @@ impl TryFrom<Vec<String>> for Config {
         let eapol2 = str_args.remove("--eapol2").unwrap();
         let max = digit_args.remove("--max").unwrap();
         let min = digit_args.remove("--min").unwrap();
-        let iterator = None;
 
-        Ok(Self { ssid, charset, max, min, iterator, eapols: vec![eapol1, eapol2] })
+        Ok(Self { ssid, charset, max, min, eapols: vec![eapol1, eapol2] })
     }
 }
 
