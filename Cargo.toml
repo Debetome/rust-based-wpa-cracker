@@ -7,6 +7,10 @@ edition = "2021"
 
 [profile.release]
 opt-level = 3
+strip = true
+debug = false
+codegen-units = 1
+lto = true
 
 [dependencies]
 tokio = { version = "1.22", features=["full"] }
