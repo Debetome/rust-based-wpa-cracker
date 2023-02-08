@@ -75,8 +75,8 @@ impl WpaCracker {
             pbkdf2::derive(
                 pbkdf2::PBKDF2_HMAC_SHA1, 
                 std::num::NonZeroU32::new(4096).unwrap(), 
-                &self.config.ssid.to_string().as_bytes(), 
-                passphrase.iter().join("").as_bytes(), 
+                &self.config.ssid.to_string().trim().as_bytes(), 
+                passphrase.iter().join("").trim().as_bytes(), 
                 &mut pmk);
 
             let mut ptk_hmac = HmacSha1::new_from_slice(&pmk).unwrap();
@@ -85,7 +85,7 @@ impl WpaCracker {
 
             let mut calculated_mic_hmac = HmacSha1::new_from_slice(&kck).unwrap();
             calculated_mic_hmac.update(&zeroed_frame);
-            let calculated_mic = &calculated_mic_hmac.finalize().into_bytes()[..];
+            let calculated_mic = &calculated_mic_hmac.finalize().into_bytes()[..16];
 
             if self.mic == calculated_mic {
                 println!("\n[+] Passphrase found: {:?}\n", passphrase.iter().join("").as_str());
