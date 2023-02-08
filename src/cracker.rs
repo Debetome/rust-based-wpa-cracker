@@ -4,10 +4,8 @@ use sha1::Sha1;
 
 use std::collections::HashMap;
 use std::io::{BufReader, Read};
-use std::str::Chars;
 use std::fs::File;
 
-use itertools::structs::{Permutations, Unique};
 use itertools::Itertools;
 
 use crate::config::*;
@@ -71,10 +69,8 @@ impl WpaCracker {
             .collect::<Vec<String>>()
             .concat();
 
-        let iterator = charset.chars().permutations(self.config.max).unique();
-
-        for passphrase in iterator {
-            println!("[*] Trying passphrase: {:?}", passphrase.iter().join(""));
+        for passphrase in charset.chars().permutations(self.config.max).unique() {
+            println!("[*] Trying with passphrase: {:?}", passphrase.iter().join(""));
             let mut pmk = [0u8, 32];
             pbkdf2::derive(
                 pbkdf2::PBKDF2_HMAC_SHA1, 
@@ -99,12 +95,12 @@ impl WpaCracker {
     }
 }
 
-struct Message {
+pub struct Message {
     content: Vec<u8>
 }
 
 impl Message {
-    fn new(eapol1: &[u8], eapol2: &[u8]) -> Self {
+    pub fn new(eapol1: &[u8], eapol2: &[u8]) -> Self {
         let ap_mac: Vec<u8> = (&eapol1[4..10]).to_vec();
         let sta_mac: Vec<u8> = (&eapol2[4..10]).to_vec();
         let anonce: Vec<u8> = (&eapol1[51..83]).to_vec();
