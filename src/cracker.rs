@@ -70,8 +70,8 @@ impl WpaCracker {
             .concat();
 
         for passphrase in charset.chars().permutations(self.config.max).unique() {
-            println!("[*] Trying with passphrase: {:?}", passphrase.iter().join(""));
-            let mut pmk = [0u8, 32];
+            println!("[*] Trying with passphrase: {}", passphrase.iter().join(""));
+            let mut pmk = [0u8; 32];
             pbkdf2::derive(
                 pbkdf2::PBKDF2_HMAC_SHA1, 
                 std::num::NonZeroU32::new(4096).unwrap(), 
@@ -88,7 +88,7 @@ impl WpaCracker {
             let calculated_mic = &calculated_mic_hmac.finalize().into_bytes()[..16];
 
             if self.mic == calculated_mic {
-                println!("\n[+] Passphrase found: {:?}\n", passphrase.iter().join("").as_str());
+                println!("\n[+] Passphrase found: {}\n", passphrase.iter().join("").as_str());
                 break;
             }
         }
