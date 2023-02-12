@@ -9,7 +9,7 @@ edition = "2021"
 opt-level = 3
 strip = true
 debug = false
-codegen-units = 1
+# codegen-units = 1
 lto = true
 
 [dependencies]
@@ -17,3 +17,11 @@ hmac = "0.12.1"
 itertools = "0.10.5"
 ring = "0.16.20"
 sha1 = "0.10.5"
+
+[dev-dependencies]
+criterion = "0.4"
+
+[[bench]]
+name = "bench_check_passphrase"
+path = "benches/bench_check_passphrase.rs"
+harness = false
