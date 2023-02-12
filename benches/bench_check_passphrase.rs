@@ -21,6 +21,7 @@ struct TestMessage {
 }
 
 impl TestMessage {
+    #[inline]
     pub fn new() -> Self {
         let ap_mac: Vec<u8> = (&"00:45:ED:FE:32:14".as_bytes()).to_vec();
         let sta_mac: Vec<u8> = (&"44:55:FE:27:42:66".as_bytes()).to_vec();
@@ -57,6 +58,7 @@ impl TestMessage {
         Self { content }
     }
 
+    #[inline]
     fn sort<'m>(in_1: &'m Vec<u8>, in_2: &'m Vec<u8>) -> Result<(&'m Vec<u8>, &'m Vec<u8>), Box<dyn std::error::Error>> {
         if in_1.len() != in_2.len() {
             panic!("Input arguments don't match!");
@@ -73,11 +75,13 @@ impl TestMessage {
         return Ok((in_1, in_2));
     }
 
+    #[inline]
     pub fn as_bytes(&self) -> &Vec<u8> {
         &self.content
     }
 }
 
+#[inline]
 fn generate_check_mic(message: &TestMessage, zeroed_frame: &[u8]) {
     let mut pmk = [0u8; 32];
     pbkdf2::derive(
