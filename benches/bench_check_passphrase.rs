@@ -101,13 +101,13 @@ pub fn bench_generate_check_mic(c: &mut Criterion) {
     let zeroed_frame = 
         b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 
-    let mut group = c.benchmark_group("MIC generation");
+    let mut group = c.benchmark_group("MIC bench group");
 
     group.warm_up_time(Duration::from_secs(10));
     group.measurement_time(Duration::from_secs(15));
     group.sample_size(1000);
 
-    group.bench_function("Bench MIC", |b| b.iter(|| {
+    group.bench_function("Generate MIC bench", |b| b.iter(|| {
         generate_check_mic(black_box(&message), black_box(zeroed_frame));
     }));
 
